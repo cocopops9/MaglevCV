@@ -7,7 +7,8 @@ import sys
 import math
 import time
 
-def detect_ArUco(img):  # This method identifies each ArUco in an image and returns a dictionary of ArUcos, where the pairs consist of (key: ArUco's id, value: corners)
+def detect_ArUco(img):  # This method identifies each ArUco in an image and returns a dictionary of ArUcos,
+                        # where the pairs consist of (key: ArUco's id, value: corners)
 
     Detected_ArUco_markers = {}  
     aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_5X5_50) 
@@ -21,7 +22,8 @@ def detect_ArUco(img):  # This method identifies each ArUco in an image and retu
     
     return Detected_ArUco_markers 
 
-def Calculate_orientation(Detected_ArUco_markers):  # Function that calculates the angle of an ArUco relative to the z-axis and returns a dictionary where the pairs consist of (key: ArUco's id, value: angle)
+def Calculate_orientation(Detected_ArUco_markers):  # Function that calculates the angle of an ArUco relative to the z-axis and 
+                                                    # returns a dictionary where the pairs consist of (key: ArUco's id, value: angle)
 
     ArUco_marker_angles = {}  
 
@@ -51,7 +53,8 @@ def Calculate_orientation(Detected_ArUco_markers):  # Function that calculates t
     
     return ArUco_marker_angles  # Returns the dictionary with the angles of the ArUco markers.
 
-def mark_ArUco(img, Detected_ArUco_markers, ArUco_marker_angles):  # Function that modifies an image, marking for each ArUco: id, vertices, and angle relative to the z-axis
+def mark_ArUco(img, Detected_ArUco_markers, ArUco_marker_angles):  # Function that modifies an image, marking for each ArUco: id, vertices,
+                                                                    #and angle relative to the z-axis
     
     for key in Detected_ArUco_markers:
         corners = Detected_ArUco_markers[key]  
