@@ -1,13 +1,23 @@
-- aruco_library: definisce delle funzioni per rilevare e definire posa e angolazione di ArUco Markers, attraverso l'uso della libreria OpenCV
-- maglev_rotationCV: riceve un video in input ed usa le funzioni definite in aruco_library, per: identificare gli ID's degli ArUco Markers, rilevare posa ed orientamento, e generare un video in output con le informazioni contrassegnate (questo script si chiama maglev_rotationCV, perchè è stato applicato ad un video raffigurante un magnete levitante, ma può essere addattato a qualsiasi video contenente ArUco markers)
-- ideal_harmonic_oscillator: genera la risposta rotazionale di un'oscillatore armonico in funzione di parametri fisici forniti dall'utente
-- model_estimation_naive: ricava i parametri ottimali di un'oscillatore armonico a partire da un dataset continuo contenente coppie: (istante di tempo,angolo di rotazione) (è adeguato solo per dataset ideali)
-- model_estimation_naive_4real_data: script model_estimation_naive applicato ad una dataset reale (mostra l'inadeguatezza della stima)
-- model_estimation_simple: versione migliorata di model_estimation_naive , funziona anche per dataset reali , fintantochè i disturbi sono minimi e non sono presenti effetti non lineari nel sistema
-- model_estimation_advanced: non fa veramente una stima avanzata, ma prende in causa i parametri ottimali di modelli di oscillatori a parametri variabili nel tempo, il che generalmente migliora la stima dei parametri per sistemi con disturbi e/o effetti non lineari
-- Kalman:  questo script riceve delle misurazioni reali ed i parametri stimati del corrispondente modello di oscillatore armonico, dopo a partire da queste informazioni, fa il tuning del rumore di misurazione e di processo e fa il Kalman filtering, fornendo dei plot e delle informazioni numeriche per valutare la bontà del filtraggio
-- meausered_rotation.csv: esempio di dataset reale generato con maglev_rotation.CV a partire da un video
-- parameters_constant.csv : parametri stimati da meausered_rotation.csv, eseguendo model_estimation_simple.py
-- parameters_variable.csv : parametri stimati da meausered_rotation.csv, eseguendo model_estimation_advanced.py
+aruco_library: defines functions to detect and determine the pose and orientation of ArUco Markers using the OpenCV library.
+
+maglev_rotationCV: takes a video as input and uses the functions defined in aruco_library to identify the IDs of ArUco Markers, detect their pose and orientation, and generate an output video with the marked information. This script is named maglev_rotationCV because it was applied to a video featuring a levitating magnet, but it can be adapted to any video containing ArUco markers.
+
+ideal_harmonic_oscillator: generates the rotational response of a harmonic oscillator based on physical parameters provided by the user.
+
+model_estimation_naive: derives the optimal parameters of a harmonic oscillator from a continuous dataset containing pairs of (time, rotation angle). It is suitable only for ideal datasets.
+
+model_estimation_naive_4real_data: this is the model_estimation_naive script applied to a real dataset (demonstrating the inadequacy of the naive estimation for real data).
+
+model_estimation_simple: an improved version of model_estimation_naive, which also works for real datasets, as long as the noise is minimal and there are no nonlinear effects in the system.
+
+model_estimation_advanced: doesn't actually perform an advanced estimation but considers the optimal parameters of models with time-varying oscillator parameters. This generally improves parameter estimation for systems with disturbances and/or nonlinear effects.
+
+Kalman: this script receives real measurements and the estimated parameters of the corresponding harmonic oscillator model. Using this information, it tunes the measurement and process noise, performs Kalman filtering, and provides plots and numerical information to evaluate the quality of the filtering.
+
+measured_rotation.csv: an example of a real dataset generated with maglev_rotationCV from a video.
+
+parameters_constant.csv: parameters estimated from measured_rotation.csv using model_estimation_simple.py.
+
+parameters_variable.csv: parameters estimated from measured_rotation.csv using model_estimation_advanced.py.
 
  
