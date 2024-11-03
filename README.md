@@ -6,5 +6,8 @@
 - model_estimation_simple: versione migliorata di model_estimation_naive , funziona anche per dataset reali , fintantochè i disturbi sono minimi e non sono presenti effetti non lineari nel sistema
 - model_estimation_advanced: non fa veramente una stima avanzata, ma prende in causa i parametri ottimali di modelli di oscillatori a parametri variabili nel tempo, il che generalmente migliora la stima dei parametri per sistemi con disturbi e/o effetti non lineari
 - Kalman:  questo script riceve delle misurazioni reali ed i parametri stimati del corrispondente modello di oscillatore armonico, dopo a partire da queste informazioni, fa il tuning del rumore di misurazione e di processo e fa il Kalman filtering, fornendo dei plot e delle informazioni numeriche per valutare la bontà del filtraggio
+- meausered_rotation.csv: esempio di dataset reale generato con maglev_rotation.CV a partire da un video
+- parameters_constant.csv : parametri stimati da meausered_rotation.csv, eseguendo model_estimation_simple.py
+- parameters_variable.csv : parametri stimati da meausered_rotation.csv, eseguendo model_estimation_advanced.py
 
  
