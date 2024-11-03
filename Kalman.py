@@ -1,7 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import csv
-from statsmodels.tsa.stattools import acf
 
 # Function to read measurements from a CSV file
 def read_measurements(filename):
@@ -20,8 +19,8 @@ def read_parameters(filename):
     with open(filename, 'r') as file:
         reader = csv.reader(file)
         for row in reader:
-            key=row[0]
-            value=float(row[1])
+            key = row[0]
+            value = float(row[1])
             parameters[key] = value
     return parameters
 
@@ -34,8 +33,8 @@ params = read_parameters(param_file)
 
 # Extract parameters
 A_param = params.get('A', None)
-gamma0 = params.get('gamma0', None)
-gamma1 = params.get('gamma1', None)
+beta0 = params.get('beta0', None)
+beta1 = params.get('beta1', None)
 omega0 = params.get('omega0', None)
 omega1 = params.get('omega1', None)
 phi = params.get('phi', None)
@@ -48,14 +47,14 @@ time, theta_measured_deg = read_measurements(data_file)
 theta_measured_rad = np.deg2rad(theta_measured_deg)
 
 # Function for the theoretical model using parameters
-def damped_oscillator_model(t, A, gamma0, gamma1, omega0, omega1, phi, offset):
-    gamma_t = gamma0 + gamma1 * t
+def damped_oscillator_model(t, A, beta0, beta1, omega0, omega1, phi, offset):
+    beta_t = beta0 + beta1 * t
     omega_t = omega0 + omega1 * t
     omega_t_phi = omega_t * t + phi
-    return A * np.exp(-gamma_t * t) * np.cos(omega_t_phi) + offset
+    return A * np.exp(-beta_t * t) * np.cos(omega_t_phi) + offset
 
 # Calculate the theoretical model
-theta_theoretical = damped_oscillator_model(time, A_param, gamma0, gamma1, omega0, omega1, phi, offset)
+theta_theoretical = damped_oscillator_model(time, A_param, beta0, beta1, omega0, omega1, phi, offset)
 
 # Plot of the measurements and theoretical model
 plt.figure(figsize=(12, 6))
@@ -90,18 +89,18 @@ x = np.array([theta_0, omega_0])
 P = [[1, 0],[0, 1]]
 
 # Observation matrix C, we are only observing the rotation angle
-C = np.array([[1, 0]])
+H = np.array([[1, 0]])
 
 # Array to save the likelihood function for each sigma_q
 likelihood = []
-sigma_q_values = np.logspace(-8, 0, num=50) # Generate 50 values evenly spaced on a logarithmic scale between 10^(-8) and 10^0
+sigma_q_values = np.logspace(-7, 1, num=50) # Generate 50 values evenly spaced on a logarithmic scale between 10^(-8) and 10^0
 best_likelihood = -np.inf # Initialize with the most unlikely value
 best_sigma_q = None
 best_theta_estimated = None
 
 for sigma_q_current in sigma_q_values:
     # Process noise covariance matrix Q
-    Q = np.array([[sigma_q_current**2, 0],
+    Q = np.array([[0, 0],
                   [0, sigma_q_current**2]])
 
     theta_estimated = np.zeros(len(time))
@@ -115,14 +114,14 @@ for sigma_q_current in sigma_q_values:
     for k in range(len(time)):
         instant_k = time[k]
 
-        # Calculate gamma_t and omega_t at time t_k
-        gamma_tk = gamma0 + gamma1 * instant_k
+        # Calculate beta_t and omega_t at time t_k
+        beta_tk = beta0 + beta1 * instant_k
         omega_tk = omega0 + omega1 * instant_k
 
         # State transition matrix F_k
         F_k = np.array([
             [1, dt],
-            [0, 1 - gamma_tk * dt]
+            [0, 1 - beta_tk * dt]
         ])
 
         # Prediction
@@ -131,19 +130,19 @@ for sigma_q_current in sigma_q_values:
 
         # Measurement residual
         z_k = theta_measured_rad[k]
-        y_k = z_k - (C @ x_pred)[0]  
+        y_k = z_k - (H @ x_pred)[0]  
         innovations[k] = y_k
 
         # Innovation covariance
-        S_k = (C @ P_pred @ C.T + R)[0, 0]  # We are only observing the angle
+        S_k = (H @ P_pred @ H.T + R)[0, 0]  # We are only observing the angle
         S_values[k] = S_k
 
         # Kalman gain
-        K_k = (P_pred @ C.T) / S_k  
+        K_k = (P_pred @ H.T) / S_k  
 
         # Update
         x_est = x_pred + K_k[0,0] * y_k 
-        P_est = (np.eye(2) - K_k @ C) @ P_pred
+        P_est = ([[1, 0],[0, 1]] - K_k @ H) @ P_pred
 
         # Save the estimated angle
         theta_estimated[k] = x_est[0]
@@ -179,7 +178,7 @@ plt.show()
 # Compare measurements and Kalman filter estimates
 plt.figure(figsize=(12, 6))
 plt.plot(time, theta_measured_deg, label='Measurements', color='blue')
-plt.plot(time, np.rad2deg(best_theta_estimated), label='Kalman Filter Estimates', color='brown', linestyle='--', linewidth=0.7)
+plt.plot(time, np.rad2deg(best_theta_estimated), label='Kalman Filter Estimates', color='#999910', linestyle='--', linewidth=0.7)
 plt.xlabel('Time (s)')
 plt.ylabel('Angle (deg)')
 plt.title('Measurements vs Kalman Filter Estimates')
@@ -211,7 +210,7 @@ plt.show()
 
 # Plot of Kalman filter estimates vs Theoretical Model
 plt.figure(figsize=(12, 6))
-plt.plot(time, np.rad2deg(best_theta_estimated), label='Kalman Filter Estimates', color='brown', linestyle='--', linewidth=0.7)
+plt.plot(time, np.rad2deg(best_theta_estimated), label='Kalman Filter Estimates', color='#999910', linestyle='--', linewidth=0.7)
 plt.plot(time, np.rad2deg(theta_theoretical), label='Theoretical Model', color='orange', linestyle='-', linewidth=0.7)
 plt.xlabel('Time (s)')
 plt.ylabel('Angle (deg)')
@@ -220,10 +219,10 @@ plt.legend()
 plt.grid(True)
 plt.show()
 
-# Calculate the residuals between the Kalman filter estimates and the Theoretical Model
+# Calculate the residuals between the Kalman filter estimates and Theoretical Model
 residuals_kalman_theoretical = best_theta_estimated - theta_theoretical
 
-# Residuals between Kalman filter estimates and the Theoretical Model
+# Residuals between Kalman filter estimates and Theoretical Model
 plt.figure(figsize=(12, 6))
 plt.plot(time, np.rad2deg(residuals_kalman_theoretical), label='Residuals (Estimates - Theoretical Model)', color='pink')
 plt.xlabel('Time (s)')
