@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MaglevCV Interactive Lab</title>
+  <meta name="description" content="Interactive walkthrough of MaglevCV: ArUco detection, angle extraction, damped oscillator models, curve fitting and Kalman filtering, running on the project's real data.">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <link rel="stylesheet" href="lab/lab.css">
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <h1>Maglev<span>CV</span> Interactive Lab</h1>
+    <p class="lead">
+      Every widget on this page runs the project's own algorithms (ported line by line to JavaScript and
+      checked against the Python output) on the project's own data: the 5926 angle samples in
+      <code>measured_rotation.csv</code> and the fitted parameter files. Follow the five steps in order:
+      they are the pipeline.
+    </p>
+    <div class="links">
+      <a href="https://github.com/cocopops9/MaglevCV">Repository</a>
+      <a href="https://github.com/cocopops9/MaglevCV/tree/main/docs">Written guide (docs/)</a>
+      <a href="https://github.com/cocopops9/MaglevCV#usage">Usage</a>
+    </div>
+    <img src="assets/pipeline.svg" alt="Pipeline: video, ArUco tracking, time series, model fitting, Kalman filter">
+  </div>
+</header>
+
+<nav class="stepper" aria-label="Lab steps">
+  <div class="wrap">
+    <ol>
+      <li><a href="#detect"><span class="n">1</span>Detect the marker</a></li>
+      <li><a href="#angle"><span class="n">2</span>Read the angle</a></li>
+      <li><a href="#physics"><span class="n">3</span>Model the physics</a></li>
+      <li><a href="#fitting"><span class="n">4</span>Fit the model</a></li>
+      <li><a href="#kalman"><span class="n">5</span>Filter the signal</a></li>
+    </ol>
+  </div>
+</nav>
+
+<!-- ============================================================================== 1 -->
+<section class="chapter" id="detect">
+  <div class="wrap">
+    <h2><span class="num">1</span>Detect the marker</h2>
+    <p class="kicker">aruco_library.detect_ArUco() → cv2.aruco.detectMarkers(gray, DICT_5X5_50, DetectorParameters())</p>
+    <div class="prose">
+      <p>
+        The detector first converts each frame to grayscale and binarises it with an <b>adaptive mean threshold</b>:
+        a pixel becomes foreground when it is darker than the mean of its \(w\times w\) neighbourhood minus a constant \(C\).
+        OpenCV's default parameters try \(w = 3, 13, 23\) with \(C = 7\). Because the threshold follows the local
+        brightness, the marker's black border survives uneven lighting, which a single global threshold does not.
+        Contours of the binary image are then approximated by polygons, convex quadrilaterals are kept, unwarped and
+        decoded into bits.
+      </p>
+    </div>
+    <div class="grid two">
+      <div class="card">
+        <h3>Synthetic camera frame <small>(grayscale)</small></h3>
+        <canvas id="thr-input" class="pix"></canvas>
+      </div>
+      <div class="card">
+        <h3 id="thr-title">Binary image</h3>
+        <canvas id="thr-output" class="pix"></canvas>
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <div class="grid two">
+        <div class="controls">
+          <div class="row">
+            <span class="seg" id="thr-method">
+              <button data-v="adaptive" class="on">Adaptive mean</button>
+              <button data-v="otsu">Global Otsu</button>
+            </span>
+          </div>
+          <div class="control"><label for="thr-win">window size w (px)</label><output id="thr-win-o"></output>
+            <input id="thr-win" type="range" min="3" max="51" step="2" value="13"></div>
+          <div class="control"><label for="thr-c">constant C</label><output id="thr-c-o"></output>
+            <input id="thr-c" type="range" min="0" max="30" step="1" value="7"></div>
+        </div>
+        <div class="controls">
+          <div class="control"><label for="thr-light">uneven illumination</label><output id="thr-light-o"></output>
+            <input id="thr-light" type="range" min="0" max="0.9" step="0.01" value="0.55"></div>
+          <div class="control"><label for="thr-noise">sensor noise σ (gray levels)</label><output id="thr-noise-o"></output>
+            <input id="thr-noise" type="range" min="0" max="40" step="1" value="8"></div>
+          <div class="control"><label for="thr-rot">marker rotation (deg)</label><output id="thr-rot-o"></output>
+            <input id="thr-rot" type="range" min="0" max="360" step="1" value="20"></div>
+        </div>
+      </div>
+      <p class="note info" id="thr-note"></p>
+    </div>
+    <figure>
+      <img src="assets/aruco_detection.svg" alt="Seven steps of ArUco detection computed by OpenCV">
+      <figcaption>The complete detection chain, computed by OpenCV and by <code>aruco_library.py</code> itself on a synthetic frame (regenerate with <code>docs/tools/build_figures.py</code>).</figcaption>
+    </figure>
+    <div class="next"><a href="https://github.com/cocopops9/MaglevCV/blob/main/docs/02-aruco-detection.md">Chapter 2 · ArUco detection (written guide)</a><a href="#angle">Next: read the angle →</a></div>
+  </div>
+</section>
+
+<!-- ============================================================================== 2 -->
+<section class="chapter" id="angle">
+  <div class="wrap">
+    <h2><span class="num">2</span>Read the angle</h2>
+    <p class="kicker">aruco_library.Calculate_orientation(): four corners → one integer angle in degrees</p>
+    <div class="prose">
+      <p>
+        From the corners \(tl, tr, br, bl\) the code builds the top-edge midpoint and the centre, flips the image
+        \(y\) axis so that "up" is positive, and takes \(\arctan(\Delta y/\Delta x)\). The arctangent only covers
+        \((-90^\circ, 90^\circ)\); three branches extend it to a full turn. The result is rounded <em>before</em> the
+        branch offset is added, so it is always a whole degree (and 360 can appear instead of 0). An upright marker
+        reads 90°. Drag the marker, tilt the camera, or add corner noise to see what the measurement does.
+      </p>
+    </div>
+    <div class="grid side">
+      <div class="card">
+        <canvas id="ang-canvas" class="square" aria-label="Rotatable ArUco marker"></canvas>
+        <p class="legend" style="justify-content:center">drag the marker to rotate it</p>
+      </div>
+      <div class="card">
+        <div class="grid two">
+          <div class="controls">
+            <div class="control"><label for="ang-rot">in-plane rotation r (deg)</label><output id="ang-rot-o"></output>
+              <input id="ang-rot" type="range" min="0" max="360" step="0.1" value="347"></div>
+            <div class="control"><label for="ang-tilt">camera tilt (deg)</label><output id="ang-tilt-o"></output>
+              <input id="ang-tilt" type="range" min="0" max="70" step="1" value="0"></div>
+            <div class="control"><label for="ang-noise">corner noise σ (px)</label><output id="ang-noise-o"></output>
+              <input id="ang-noise" type="range" min="0" max="4" step="0.1" value="0"></div>
+            <canvas id="ang-hist" class="plot"></canvas>
+            <p class="legend" id="ang-hist-cap"></p>
+          </div>
+          <table class="readout" id="ang-table"></table>
+        </div>
+      </div>
+    </div>
+    <div class="next"><a href="https://github.com/cocopops9/MaglevCV/blob/main/docs/03-angle-extraction.md">Chapter 3 · Angle extraction (written guide)</a><a href="#physics">Next: model the physics →</a></div>
+  </div>
+</section>
+
+<!-- ============================================================================== 3 -->
+<section class="chapter" id="physics">
+  <div class="wrap">
+    <h2><span class="num">3</span>Model the physics</h2>
+    <p class="kicker">ideal_harmonic_oscillator.py: \(I\ddot\theta + c\,\dot\theta + k\,\theta = 0\), solved as \(\theta(t) = C\,e^{At}x_0\)</p>
+    <div class="prose">
+      <p>
+        With state \(x = [\theta,\ \dot\theta]^T\), \(\alpha = k/I\) and \(\beta = c/I\), the system is
+        \(\dot x = A x\) with \(A = \begin{bmatrix}0 & 1\\ -\alpha & -\beta\end{bmatrix}\), and the script evaluates the
+        exact solution with the matrix exponential (<code>scipy.linalg.expm</code>; here a closed-form 2×2 version).
+        In the under-damped case the same curve is \(A_0 e^{-\frac{c}{2I}t}\cos(\omega_d t + \varphi)\): this is the
+        form every fitting script uses, so its "\(\beta\)" is \(c/2I\), half of the simulator's \(\beta = c/I\).
+      </p>
+    </div>
+    <div class="grid side">
+      <div class="card">
+        <canvas id="osc-disk" class="square" style="max-width:260px"></canvas>
+        <div class="controls" style="margin-top:10px">
+          <div class="control"><label for="osc-I">moment of inertia I (kg·m²)</label><output id="osc-I-o"></output>
+            <input id="osc-I" type="range" min="0.2" max="4" step="0.1" value="1"></div>
+          <div class="control"><label for="osc-k">torsional stiffness k (N·m/rad)</label><output id="osc-k-o"></output>
+            <input id="osc-k" type="range" min="0.5" max="40" step="0.5" value="15"></div>
+          <div class="control"><label for="osc-c">damping c (N·m·s/rad)</label><output id="osc-c-o"></output>
+            <input id="osc-c" type="range" min="0" max="20" step="0.1" value="1"></div>
+          <div class="control"><label for="osc-th0">θ₀ (deg)</label><output id="osc-th0-o"></output>
+            <input id="osc-th0" type="range" min="-90" max="90" step="1" value="45"></div>
+          <div class="control"><label for="osc-w0">ω₀ (deg/s)</label><output id="osc-w0-o"></output>
+            <input id="osc-w0" type="range" min="-360" max="360" step="1" value="180"></div>
+          <div class="row"><button id="osc-play" class="primary">Pause</button><button id="osc-reset">Script defaults</button></div>
+        </div>
+      </div>
+      <div class="card">
+        <canvas id="osc-plot" class="plot"></canvas>
+        <div class="grid two" style="margin-top:12px">
+          <canvas id="osc-phase" class="plot"></canvas>
+          <table class="readout" id="osc-table"></table>
+        </div>
+      </div>
+    </div>
+    <figure><img src="assets/oscillator.svg" alt="Animated damped oscillator with phase portrait"></figure>
+    <div class="next"><a href="https://github.com/cocopops9/MaglevCV/blob/main/docs/04-physical-model.md">Chapter 4 · Physical model (written guide)</a><a href="#fitting">Next: fit the model →</a></div>
+  </div>
+</section>
+
+<!-- ============================================================================== 4 -->
+<section class="chapter" id="fitting">
+  <div class="wrap">
+    <h2><span class="num">4</span>Fit the model</h2>
+    <p class="kicker">model_estimation_naive*.py · model_estimanion_simple.py · model_estimanion_advanced.py</p>
+    <div class="prose">
+      <p>
+        <code>scipy.optimize.curve_fit</code> minimises the sum of squared residuals with the Levenberg–Marquardt
+        algorithm. It only finds the minimum nearest to its starting point, so the scripts differ mainly in the
+        model and in the initial guess: the naive one starts from all ones, the other two derive \(p_0\) from the
+        peaks of the signal (logarithmic decrement for \(\beta\), peak spacing for \(\omega\)). Choose a dataset and a
+        model, load the script's starting point, and press <b>Run Levenberg–Marquardt</b> to watch the iterations.
+      </p>
+    </div>
+    <div class="card">
+      <div class="row" style="justify-content:space-between">
+        <div class="row">
+          <select id="fit-data" aria-label="Dataset">
+            <option value="measured">measured_rotation.csv (real)</option>
+            <option value="ideal">ideal oscillator response (synthetic)</option>
+          </select>
+          <span class="seg" id="fit-model">
+            <button data-v="naive">naive</button>
+            <button data-v="constant">simple</button>
+            <button data-v="variable" class="on">advanced</button>
+          </span>
+        </div>
+        <div class="row">
+          <button id="fit-guess">Script's initial guess</button>
+          <button id="fit-stored">Stored result</button>
+          <button id="fit-run" class="primary">Run Levenberg–Marquardt</button>
+        </div>
+      </div>
+      <canvas id="fit-plot" class="plot" style="margin-top:12px"></canvas>
+      <div class="legend"><span><i style="background:var(--cyan)"></i>data</span><span><i style="background:var(--orange)"></i>model</span><span><i style="background:var(--text)"></i>peaks used by the initial guess</span></div>
+      <canvas id="fit-res" class="plot" style="margin-top:8px"></canvas>
+      <div class="grid two" style="margin-top:12px">
+        <div class="controls">
+          <div class="control"><label for="fit-start">view start (s)</label><output id="fit-start-o"></output>
+            <input id="fit-start" type="range" min="0" max="197" step="0.5" value="0"></div>
+          <div class="control"><label for="fit-span">view span (s)</label><output id="fit-span-o"></output>
+            <input id="fit-span" type="range" min="4" max="198" step="1" value="30"></div>
+          <div id="fit-sliders" class="controls"></div>
+        </div>
+        <div>
+          <div class="stats" id="fit-stats"></div>
+          <p class="note" id="fit-note"></p>
+        </div>
+      </div>
+    </div>
+    <figure><img src="assets/envelope.svg" alt="Measured amplitude versus the envelopes of both fitted models"></figure>
+    <div class="next"><a href="https://github.com/cocopops9/MaglevCV/blob/main/docs/05-parameter-estimation.md">Chapter 5 · Parameter estimation (written guide)</a><a href="#kalman">Next: filter the signal →</a></div>
+  </div>
+</section>
+
+<!-- ============================================================================== 5 -->
+<section class="chapter" id="kalman">
+  <div class="wrap">
+    <h2><span class="num">5</span>Filter the signal</h2>
+    <p class="kicker">Kalman.py: state \([\theta, \dot\theta]\), \(F_k = \begin{bmatrix}1 & \Delta t\\ 0 & 1-\beta(t_k)\Delta t\end{bmatrix}\), \(\sigma_q\) chosen by maximum likelihood</p>
+    <div class="prose">
+      <p>
+        \(R = \sigma_z^2\) comes from the residuals of the advanced model; \(Q = \mathrm{diag}(0, \sigma_q^2)\) is the only
+        free knob. For each \(\sigma_q\) the filter runs over all 5926 samples and accumulates the Gaussian
+        log-likelihood of its innovations; the script keeps the best of 50 log-spaced values. Move \(\sigma_q\), click the
+        likelihood curve, scrub the step inspector, and compare the update written in <code>Kalman.py</code>
+        (\(\hat x = x^- + K_{0}\,y\), the angle gain applied to both states) with the textbook update
+        (\(\hat x = x^- + K\,y\)).
+      </p>
+    </div>
+    <div class="card">
+      <div class="row" style="justify-content:space-between">
+        <span class="seg" id="kf-mode">
+          <button data-v="script" class="on">Update as in Kalman.py</button>
+          <button data-v="textbook">Textbook update</button>
+        </span>
+        <button id="kf-best" class="primary">Jump to σq* (grid maximum)</button>
+      </div>
+      <div class="grid two" style="margin-top:12px">
+        <div>
+          <div class="control"><label for="kf-q">log₁₀ σq</label><output id="kf-q-o"></output>
+            <input id="kf-q" type="range" min="-7" max="1" step="0.01" value="-0.306"></div>
+          <canvas id="kf-lik" class="plot"></canvas>
+        </div>
+        <div class="stats" id="kf-stats"></div>
+      </div>
+      <canvas id="kf-plot" class="plot" style="margin-top:12px"></canvas>
+      <div class="legend"><span><i style="background:var(--cyan)"></i>measurements z</span><span><i style="background:var(--green)"></i>estimate θ̂ ± 1σ</span><span><i style="background:var(--violet)"></i>advanced model</span><span><i style="background:var(--text)"></i>inspected step</span></div>
+      <canvas id="kf-innov" class="plot" style="margin-top:8px"></canvas>
+      <div class="legend"><span><i style="background:var(--pink)"></i>innovation y = z − θ⁻</span><span><i style="background:#f472b655"></i>± √S</span></div>
+      <div class="grid two" style="margin-top:12px">
+        <div class="controls">
+          <div class="control"><label for="kf-start">view start (s)</label><output id="kf-start-o"></output>
+            <input id="kf-start" type="range" min="0" max="195" step="0.5" value="150"></div>
+          <div class="control"><label for="kf-span">view span (s)</label><output id="kf-span-o"></output>
+            <input id="kf-span" type="range" min="1" max="198" step="1" value="8"></div>
+          <div class="control"><label for="kf-k">step inspector k</label><output id="kf-k-o"></output>
+            <input id="kf-k" type="range" min="0" max="5925" step="1" value="4560"></div>
+        </div>
+        <table class="readout" id="kf-table"></table>
+      </div>
+    </div>
+    <figure><img src="assets/kalman_cycle.svg" alt="Animated predict and update cycle"></figure>
+    <div class="next"><a href="https://github.com/cocopops9/MaglevCV/blob/main/docs/06-kalman-filter.md">Chapter 6 · Kalman filter (written guide)</a><a href="https://github.com/cocopops9/MaglevCV/blob/main/docs/07-results-and-limitations.md">Chapter 7 · Results and limitations →</a></div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    Numerical core: <code>lab/models.js</code>, verified against the Python scripts by <code>tools/verify_lab.js</code>.
+    Data bundle and figures: <code>tools/build_figures.py</code>.
+  </div>
+</footer>
+
+<script src="lab/data.js"></script>
+<script src="lab/models.js"></script>
+<script src="lab/plot.js"></script>
+<script src="lab/lab.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {delimiters: [{left: '\\(', right: '\\)', display: false}]})"></script>
+</body>
+</html>

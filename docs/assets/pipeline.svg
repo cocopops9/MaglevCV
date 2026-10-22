@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 960 340" width="960" height="340" role="img">
+<title>MaglevCV pipeline</title>
+<defs>
+<linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0b1020"/><stop offset="1" stop-color="#121a33"/></linearGradient>
+<filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+</defs>
+<rect width="960" height="340" rx="18" fill="url(#bg)"/>
+<text x="32.0" y="40.0" font-family="Inter, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="18" font-weight="700" fill="#e6edf7" text-anchor="start" >Pipeline: from pixels to a filtered state estimate</text>
+<rect x="32" y="92" width="164" height="104" rx="12" fill="#1e3a5f" stroke="#38bdf8" stroke-opacity="0.65"><animate attributeName="stroke-opacity" values="0.35;1;0.35" dur="5s" begin="0s" repeatCount="indefinite"/></rect>
+<circle cx="52" cy="114" r="11" fill="#38bdf8"/>
+<text x="52.0" y="118.5" font-family="Inter, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" font-weight="800" fill="#0b1020" text-anchor="middle" >1</text>
+<text x="70.0" y="119.0" font-family="Inter, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14.5" font-weight="700" fill="#e6edf7" text-anchor="start" >Video</text>
+<text x="44.0" y="152.0" font-family="'JetBrains Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace" font-size="10.5" font-weight="400" fill="#38bdf8" text-anchor="start" >maglev1.mp4</text>
+<text x="46.0" y="174.0" font-family="Inter, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#8d9ab8" text-anchor="start" >OpenCV VideoCapture</text>
+<rect x="215" y="92" width="164" height="104" rx="12" fill="#1e3a5f" stroke="#38bdf8" stroke-opacity="0.65"><animate attributeName="stroke-opacity" values="0.35;1;0.35" dur="5s" begin="1s" repeatCount="indefinite"/></rect>
+<circle cx="235" cy="114" r="11" fill="#38bdf8"/>
+<text x="235.0" y="118.5" font-family="Inter, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" font-weight="800" fill="#0b1020" text-anchor="middle" >2</text>
+<text x="253.0" y="119.0" font-family="Inter, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14.5" font-weight="700" fill="#e6edf7" text-anchor="start" >ArUco tracking</text>
+<text x="227.0" y="152.0" font-family="'JetBrains Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace" font-size="10.5" font-weight="400" fill="#38bdf8" text-anchor="start" >aruco_library.py</text>
+<text x="229.0" y="174.0" font-family="Inter, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#8d9ab8" text-anchor="start" >maglev_rotation_CV.py</text>
+<rect x="398" y="92" width="164" height="104" rx="12" fill="#2a2f55" stroke="#e6edf7" stroke-opacity="0.65"><animate attributeName="stroke-opacity" values="0.35;1;0.35" dur="5s" begin="2s" repeatCount="indefinite"/></rect>
+<circle cx="418" cy="114" r="11" fill="#e6edf7"/>
+<text x="418.0" y="118.5" font-family="Inter, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" font-weight="800" fill="#0b1020" text-anchor="middle" >3</text>
+<text x="436.0" y="119.0" font-family="Inter, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14.5" font-weight="700" fill="#e6edf7" text-anchor="start" >Time series</text>
+<text x="410.0" y="152.0" font-family="'JetBrains Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace" font-size="10.5" font-weight="400" fill="#e6edf7" text-anchor="start" >measured_rotation.csv</text>
+<text x="412.0" y="174.0" font-family="Inter, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#8d9ab8" text-anchor="start" >(t [s], θ [deg])</text>
+<rect x="581" y="92" width="164" height="104" rx="12" fill="#3b2f1a" stroke="#f59e0b" stroke-opacity="0.65"><animate attributeName="stroke-opacity" values="0.35;1;0.35" dur="5s" begin="3s" repeatCount="indefinite"/></rect>
+<circle cx="601" cy="114" r="11" fill="#f59e0b"/>
+<text x="601.0" y="118.5" font-family="Inter, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" font-weight="800" fill="#0b1020" text-anchor="middle" >4</text>
+<text x="619.0" y="119.0" font-family="Inter, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14.5" font-weight="700" fill="#e6edf7" text-anchor="start" >Model fitting</text>
+<text x="593.0" y="152.0" font-family="'JetBrains Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace" font-size="10.5" font-weight="400" fill="#f59e0b" text-anchor="start" >model_estimation_*.py</text>
+<text x="595.0" y="174.0" font-family="Inter, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#8d9ab8" text-anchor="start" >curve_fit (LM)</text>
+<rect x="764" y="92" width="164" height="104" rx="12" fill="#123b33" stroke="#34d399" stroke-opacity="0.65"><animate attributeName="stroke-opacity" values="0.35;1;0.35" dur="5s" begin="4s" repeatCount="indefinite"/></rect>
+<circle cx="784" cy="114" r="11" fill="#34d399"/>
+<text x="784.0" y="118.5" font-family="Inter, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" font-weight="800" fill="#0b1020" text-anchor="middle" >5</text>
+<text x="802.0" y="119.0" font-family="Inter, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14.5" font-weight="700" fill="#e6edf7" text-anchor="start" >Kalman filter</text>
+<text x="776.0" y="152.0" font-family="'JetBrains Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace" font-size="10.5" font-weight="400" fill="#34d399" text-anchor="start" >Kalman.py</text>
+<text x="778.0" y="174.0" font-family="Inter, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#8d9ab8" text-anchor="start" >σq by max likelihood</text>
+<line x1="199" y1="144.0" x2="209" y2="144.0" stroke="#8d9ab8" stroke-width="2" stroke-dasharray="4 5"><animate attributeName="stroke-dashoffset" values="18;0" dur="0.8s" repeatCount="indefinite"/></line>
+<path d="M206,139.0 L213,144.0 L206,149.0" fill="none" stroke="#8d9ab8" stroke-width="2"/>
+<circle r="4" cx="196" cy="144.0" fill="#e6edf7" opacity="0" filter="url(#glow)"><animate attributeName="cx" values="196;215" dur="5s" begin="0.5s" keyTimes="0;0.2;1" keySplines="0.4 0 0.2 1;0 0 1 1" calcMode="spline" repeatCount="indefinite"/><animate attributeName="opacity" values="1;1;0;0" keyTimes="0;0.2;0.21;1" dur="5s" begin="0.5s" repeatCount="indefinite"/></circle>
+<line x1="382" y1="144.0" x2="392" y2="144.0" stroke="#8d9ab8" stroke-width="2" stroke-dasharray="4 5"><animate attributeName="stroke-dashoffset" values="18;0" dur="0.8s" repeatCount="indefinite"/></line>
+<path d="M389,139.0 L396,144.0 L389,149.0" fill="none" stroke="#8d9ab8" stroke-width="2"/>
+<circle r="4" cx="379" cy="144.0" fill="#e6edf7" opacity="0" filter="url(#glow)"><animate attributeName="cx" values="379;398" dur="5s" begin="1.5s" keyTimes="0;0.2;1" keySplines="0.4 0 0.2 1;0 0 1 1" calcMode="spline" repeatCount="indefinite"/><animate attributeName="opacity" values="1;1;0;0" keyTimes="0;0.2;0.21;1" dur="5s" begin="1.5s" repeatCount="indefinite"/></circle>
+<line x1="565" y1="144.0" x2="575" y2="144.0" stroke="#8d9ab8" stroke-width="2" stroke-dasharray="4 5"><animate attributeName="stroke-dashoffset" values="18;0" dur="0.8s" repeatCount="indefinite"/></line>
+<path d="M572,139.0 L579,144.0 L572,149.0" fill="none" stroke="#8d9ab8" stroke-width="2"/>
+<circle r="4" cx="562" cy="144.0" fill="#e6edf7" opacity="0" filter="url(#glow)"><animate attributeName="cx" values="562;581" dur="5s" begin="2.5s" keyTimes="0;0.2;1" keySplines="0.4 0 0.2 1;0 0 1 1" calcMode="spline" repeatCount="indefinite"/><animate attributeName="opacity" values="1;1;0;0" keyTimes="0;0.2;0.21;1" dur="5s" begin="2.5s" repeatCount="indefinite"/></circle>
+<line x1="748" y1="144.0" x2="758" y2="144.0" stroke="#8d9ab8" stroke-width="2" stroke-dasharray="4 5"><animate attributeName="stroke-dashoffset" values="18;0" dur="0.8s" repeatCount="indefinite"/></line>
+<path d="M755,139.0 L762,144.0 L755,149.0" fill="none" stroke="#8d9ab8" stroke-width="2"/>
+<circle r="4" cx="745" cy="144.0" fill="#e6edf7" opacity="0" filter="url(#glow)"><animate attributeName="cx" values="745;764" dur="5s" begin="3.5s" keyTimes="0;0.2;1" keySplines="0.4 0 0.2 1;0 0 1 1" calcMode="spline" repeatCount="indefinite"/><animate attributeName="opacity" values="1;1;0;0" keyTimes="0;0.2;0.21;1" dur="5s" begin="3.5s" repeatCount="indefinite"/></circle>
+<rect x="32" y="240" width="347" height="76" rx="12" fill="#1a1f3a" stroke="#a78bfa" stroke-opacity="0.6"/>
+<text x="46.0" y="264.0" font-family="Inter, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#a78bfa" text-anchor="start" >Validation branch</text>
+<text x="46.0" y="286.0" font-family="'JetBrains Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace" font-size="10.5" font-weight="400" fill="#8d9ab8" text-anchor="start" >ideal_harmonic_oscillator.py →</text>
+<text x="46.0" y="302.0" font-family="'JetBrains Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace" font-size="10.5" font-weight="400" fill="#8d9ab8" text-anchor="start" >model_estimation_naive.py</text>
+<rect x="401" y="240" width="347" height="76" rx="12" fill="#1a1f3a" stroke="#f59e0b" stroke-opacity="0.6"/>
+<text x="415.0" y="264.0" font-family="Inter, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#f59e0b" text-anchor="start" >Fitted parameters</text>
+<text x="415.0" y="286.0" font-family="'JetBrains Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace" font-size="10.5" font-weight="400" fill="#8d9ab8" text-anchor="start" >parameters_constant.csv</text>
+<text x="415.0" y="302.0" font-family="'JetBrains Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace" font-size="10.5" font-weight="400" fill="#8d9ab8" text-anchor="start" >parameters_variable.csv</text>
+<rect x="770" y="240" width="158" height="76" rx="12" fill="#13302b" stroke="#34d399" stroke-opacity="0.6"/>
+<text x="784.0" y="264.0" font-family="Inter, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#34d399" text-anchor="start" >Outputs</text>
+<text x="784.0" y="286.0" font-family="Inter, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#8d9ab8" text-anchor="start" >estimates θ(t),</text>
+<text x="784.0" y="302.0" font-family="Inter, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#8d9ab8" text-anchor="start" >innovations, RMSE</text>
+<path d="M663.0,196 L663.0,240" stroke="#f59e0b" stroke-width="1.6" stroke-dasharray="4 4" fill="none"/>
+<path d="M846.0,196 L846.0,240" stroke="#34d399" stroke-width="1.6" stroke-dasharray="4 4" fill="none"/>
+</svg>

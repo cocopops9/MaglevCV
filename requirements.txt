@@ -1,0 +1,5 @@
+numpy
+scipy
+matplotlib
+# cv2.aruco.detectMarkers (legacy API) and DetectorParameters() need OpenCV contrib 4.7 to 4.x
+opencv-contrib-python>=4.7,<5
